@@ -1,10 +1,9 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { format, isPast } from 'date-fns';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 
-const COLORS = ['#4f6ef7', '#38bdf8', '#22c55e', '#f59e0b', '#ec4899', '#a78bfa', '#f97316', '#14b8a6'];
 const STATUSES = ['To Do', 'In Progress', 'Done'];
 const PRIORITIES = ['Low', 'Medium', 'High'];
 
@@ -222,12 +221,6 @@ function PriorityBadge({ priority }) {
   return <span className={`badge ${cls}`}>{priority}</span>;
 }
 
-// ─── Status Badge ──────────────────────────────────────────────
-function StatusBadge({ status }) {
-  const cls = { 'To Do': 'badge-todo', 'In Progress': 'badge-progress', 'Done': 'badge-done' }[status] || '';
-  return <span className={`badge ${cls}`}>{status}</span>;
-}
-
 // ─── Task Card ─────────────────────────────────────────────────
 function TaskCard({ task, isAdmin, onEdit, onDelete, onStatusChange }) {
   const overdue = task.status !== 'Done' && isPast(new Date(task.dueDate));
@@ -303,14 +296,6 @@ export default function ProjectDetail() {
     (m) => m.user?._id === user?._id || m.user?.toString() === user?._id
   )?.role;
   const isAdmin = myRole === 'Admin';
-
-  const fetchProject = useCallback(() => {
-    api.get(`/projects/${id}`).then((res) => setProject(res.data)).catch(() => navigate('/projects'));
-  }, [id, navigate]);
-
-  const fetchTasks = useCallback(() => {
-    api.get(`/tasks/project/${id}`).then((res) => setTasks(res.data)).catch(() => {});
-  }, [id]);
 
   useEffect(() => {
     Promise.all([

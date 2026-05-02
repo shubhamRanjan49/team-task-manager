@@ -123,7 +123,6 @@ export default function Projects() {
       ) : (
         <div className="grid-3">
           {projects.map((project) => {
-            const myMember = project.members?.find((m) => m.user && typeof m.user === 'object');
             return (
               <Link key={project._id} to={`/projects/${project._id}`} className="project-card">
                 <div className="project-color-bar" style={{ background: project.color || '#4f6ef7' }} />
