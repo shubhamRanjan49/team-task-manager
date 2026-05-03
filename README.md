@@ -1,231 +1,137 @@
-# ⚡ TaskFlow – Team Task Manager
+# TaskFlow - Team Task Manager
 
-A full-stack MERN application for collaborative project and task management. Teams can create projects, assign tasks, track progress with a Kanban board, and view analytics on a dashboard.
+TaskFlow is a MERN stack task management app for small teams. It lets users create projects, invite teammates, assign work, move tasks across a Kanban-style workflow, and view project activity from a dashboard.
 
----
+## Tech Stack
 
-## 🚀 Live Demo
-> Replace with your deployed URL after deployment to Railway
+| Area | Tools |
+| --- | --- |
+| Frontend | React, React Router, Axios, Vite |
+| Backend | Node.js, Express |
+| Database | MongoDB, Mongoose |
+| Authentication | JWT, bcryptjs |
+| Deployment | Vercel |
 
----
+## Main Features
 
-## 🏗️ Tech Stack
+- User signup and login with hashed passwords
+- JWT-protected backend routes
+- Project creation and member management
+- Admin and member roles inside each project
+- Task creation, assignment, status updates, priority, and due dates
+- Kanban columns for To Do, In Progress, and Done
+- Dashboard summary for projects, tasks, overdue work, and recent activity
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 18, React Router v6, Axios, date-fns |
-| Backend | Node.js, Express.js |
-| Database | MongoDB + Mongoose |
-| Auth | JWT (JSON Web Tokens) + bcryptjs |
-| Deployment | Railway (backend + frontend) |
+## Folder Structure
 
----
-
-## ✨ Features
-
-### Authentication
-- Secure signup with name, email, password (bcrypt hashed)
-- JWT-based login (7-day tokens)
-- Protected routes on both frontend and backend
-
-### Project Management
-- Create projects (auto-assigned as Admin)
-- Add/remove members by email
-- Assign Member or Admin roles
-- Delete projects (cascades to tasks)
-
-### Task Management
-- Kanban board (To Do / In Progress / Done)
-- Task fields: Title, Description, Due Date, Priority (Low/Medium/High), Assignee
-- Admins: full CRUD on all tasks
-- Members: update status on their assigned tasks
-- Overdue indicator for past-due tasks
-
-### Dashboard
-- Total tasks, projects, my tasks, overdue count
-- Visual bar charts: tasks by status and per user
-- Recent tasks feed
-
-### Role-Based Access
-- **Admin**: create/edit/delete tasks, manage members, delete project
-- **Member**: view all tasks, update status on assigned tasks only
-
----
-
-## 📁 Project Structure
-
-```
+```txt
 team-task-manager/
 ├── backend/
-│   ├── models/
-│   │   ├── User.js          # User schema + password hashing
-│   │   ├── Project.js       # Project schema with embedded members
-│   │   └── Task.js          # Task schema with indexes
-│   ├── routes/
-│   │   ├── auth.js          # Signup, login, /me
-│   │   ├── projects.js      # CRUD + member management
-│   │   ├── tasks.js         # CRUD with role-based access
-│   │   └── dashboard.js     # Aggregated stats
 │   ├── middleware/
-│   │   └── auth.js          # JWT protect middleware
-│   ├── server.js            # Express app entry point
+│   ├── models/
+│   ├── routes/
+│   ├── server.js
 │   ├── package.json
-│   └── .env.example
+│   └── vercel.json
 └── frontend/
     ├── public/
-    │   └── index.html
     ├── src/
     │   ├── components/
-    │   │   └── Layout.js    # Sidebar + nav
     │   ├── context/
-    │   │   └── AuthContext.js  # Global auth state
     │   ├── pages/
-    │   │   ├── Login.js
-    │   │   ├── Signup.js
-    │   │   ├── Dashboard.js
-    │   │   ├── Projects.js
-    │   │   └── ProjectDetail.js  # Kanban + members
-    │   ├── utils/
-    │   │   └── api.js       # Axios instance with interceptors
-    │   ├── App.js           # Routes
-    │   ├── index.js
-    │   └── index.css        # Design system
-    └── package.json
+    │   └── utils/
+    ├── index.html
+    ├── package.json
+    ├── vite.config.js
+    └── vercel.json
 ```
 
----
+## Local Setup
 
-## ⚙️ Local Setup
+### Backend
 
-### Prerequisites
-- Node.js 18+
-- MongoDB (local) or MongoDB Atlas URI
-
-### 1. Clone the repository
-```bash
-git clone https://github.com/YOUR_USERNAME/team-task-manager.git
-cd team-task-manager
-```
-
-### 2. Setup Backend
 ```bash
 cd backend
 npm install
-cp .env.example .env
-# Edit .env with your values
-npm run dev   # starts on port 5000
+npm run dev
 ```
 
-**Backend `.env`:**
-```
+Create `backend/.env`:
+
+```env
 PORT=5000
-MONGO_URI=mongodb://localhost:27017/team-task-manager
-JWT_SECRET=your_super_secret_key_change_this
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
 CLIENT_URL=http://localhost:3000
 NODE_ENV=development
 ```
 
-### 3. Setup Frontend
+### Frontend
+
 ```bash
 cd frontend
 npm install
-cp .env.example .env
-# Edit .env
-npm start     # starts on port 3000
+npm run dev
 ```
 
-**Frontend `.env`:**
-```
-REACT_APP_API_URL=http://localhost:5000/api
-```
+Create `frontend/.env.local`:
 
----
-
-## 🚂 Deployment to Railway
-
-### Step 1: Push to GitHub
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/team-task-manager.git
-git push -u origin main
+```env
+VITE_API_URL=http://localhost:5000/api
 ```
 
-### Step 2: Deploy Backend on Railway
-1. Go to [railway.app](https://railway.app) → New Project → Deploy from GitHub
-2. Select your repo → select the `backend` folder as root directory
-3. Railway will auto-detect Node.js
-4. Add environment variables in Railway dashboard:
-   - `MONGO_URI` – your MongoDB Atlas connection string
-   - `JWT_SECRET` – a long random string
-   - `CLIENT_URL` – your frontend Railway URL (add after deploying frontend)
-   - `NODE_ENV` – `production`
-5. Deploy and copy the backend URL (e.g., `https://taskflow-backend.railway.app`)
+## Vercel Deployment
 
-### Step 3: Deploy Frontend on Railway
-1. New Service → Deploy from GitHub (same repo, `frontend` folder)
-2. Add environment variable:
-   - `REACT_APP_API_URL` = `https://your-backend-url.railway.app/api`
-3. Set build command: `npm run build`
-4. Set start command: `npx serve -s build -l $PORT`
-5. Or add a `Procfile` in frontend: `web: npx serve -s build -l $PORT`
-6. Deploy and copy the frontend URL
+Deploy the backend and frontend as two separate Vercel projects from the same repository.
 
-### Step 4: Update CORS
-Go back to the backend Railway service and update `CLIENT_URL` to your frontend Railway URL.
+### Backend
 
-### MongoDB Atlas Setup
-1. Create free cluster at [mongodb.com/atlas](https://www.mongodb.com/atlas)
-2. Create database user and whitelist all IPs (`0.0.0.0/0`)
-3. Copy the connection string and set as `MONGO_URI`
+Use `backend` as the root directory.
 
----
+Required environment variables:
 
-## 🔌 API Endpoints
+```env
+MONGO_URI=your_mongodb_atlas_connection_string
+JWT_SECRET=your_production_jwt_secret
+CLIENT_URL=https://your-frontend-domain.vercel.app
+NODE_ENV=production
+```
 
-### Auth
-| Method | Route | Description | Auth |
-|--------|-------|-------------|------|
-| POST | `/api/auth/signup` | Register | No |
-| POST | `/api/auth/login` | Login | No |
-| GET | `/api/auth/me` | Current user | Yes |
+### Frontend
 
-### Projects
-| Method | Route | Description | Role |
-|--------|-------|-------------|------|
-| GET | `/api/projects` | My projects | Any |
-| POST | `/api/projects` | Create project | Any |
-| GET | `/api/projects/:id` | Get project | Member |
-| PUT | `/api/projects/:id` | Update project | Admin |
-| DELETE | `/api/projects/:id` | Delete project | Admin |
-| POST | `/api/projects/:id/members` | Add member | Admin |
-| DELETE | `/api/projects/:id/members/:userId` | Remove member | Admin |
+Use `frontend` as the root directory.
 
-### Tasks
-| Method | Route | Description | Role |
-|--------|-------|-------------|------|
-| GET | `/api/tasks/project/:id` | Project tasks | Member |
-| POST | `/api/tasks` | Create task | Admin |
-| PUT | `/api/tasks/:id` | Update task | Admin (all) / Member (status only) |
-| DELETE | `/api/tasks/:id` | Delete task | Admin |
+Required environment variable:
 
-### Dashboard
-| Method | Route | Description | Auth |
-|--------|-------|-------------|------|
-| GET | `/api/dashboard` | Stats | Yes |
+```env
+VITE_API_URL=https://your-backend-domain.vercel.app/api
+```
 
----
+After changing Vercel environment variables, redeploy the affected project.
 
-## 📝 Design Decisions
+## API Overview
 
-- **Embedded members in Project** – Avoids extra collection join for member lookups
-- **Role stored per project** – Same user can be Admin in one project and Member in another
-- **JWT in localStorage** – Simple for SPA; for production consider httpOnly cookies
-- **Cascade delete** – Deleting a project removes all its tasks automatically
-- **Axios interceptors** – Auto-attach token, auto-redirect on 401
+| Method | Endpoint | Purpose |
+| --- | --- | --- |
+| POST | `/api/auth/signup` | Create a new user |
+| POST | `/api/auth/login` | Sign in |
+| GET | `/api/auth/me` | Get the logged-in user |
+| GET | `/api/projects` | List user projects |
+| POST | `/api/projects` | Create a project |
+| GET | `/api/projects/:id` | Get project details |
+| PUT | `/api/projects/:id` | Update a project |
+| DELETE | `/api/projects/:id` | Delete a project |
+| POST | `/api/projects/:id/members` | Add a project member |
+| DELETE | `/api/projects/:id/members/:userId` | Remove a project member |
+| GET | `/api/tasks/project/:projectId` | List project tasks |
+| POST | `/api/tasks` | Create a task |
+| PUT | `/api/tasks/:id` | Update a task |
+| DELETE | `/api/tasks/:id` | Delete a task |
+| GET | `/api/dashboard` | Get dashboard data |
 
----
+## Notes
 
-## 🤝 Author
-Built as a full-stack coding assignment demonstrating MERN development skills.
+- Keep `.env` files out of Git.
+- Use MongoDB Atlas for deployment.
+- Set the frontend URL in the backend `CLIENT_URL` variable to avoid CORS errors.
+- Set the backend API URL in the frontend `VITE_API_URL` variable before building.
