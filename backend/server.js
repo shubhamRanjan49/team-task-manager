@@ -6,6 +6,27 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const app = express();
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/team-task-manager';
+
+let mongoConnectionPromise;
+
+const connectToMongo = () => {
+  if (mongoose.connection.readyState === 1) {
+    return Promise.resolve(mongoose.connection);
+  }
+
+  if (!mongoConnectionPromise) {
+    mongoConnectionPromise = mongoose.connect(MONGO_URI, {
+      serverSelectionTimeoutMS: 8000
+    }).catch((err) => {
+      mongoConnectionPromise = null;
+      throw err;
+    });
+  }
+
+  return mongoConnectionPromise;
+};
 
 const allowedOrigins = [
   process.env.CLIENT_URL,
@@ -54,6 +75,16 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.use('/api', async (req, res, next) => {
+  try {
+    await connectToMongo();
+    next();
+  } catch (err) {
+    console.error('MongoDB connection error:', err.message);
+    res.status(503).json({ message: 'Database connection failed' });
+  }
+});
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/tasks', require('./routes/tasks'));
@@ -71,27 +102,11 @@ app.use((err, req, res, next) => {
   });
 });
 
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/team-task-manager';
-
-let mongoConnectionPromise;
-
-const connectToMongo = () => {
-  if (!mongoConnectionPromise) {
-    mongoConnectionPromise = mongoose.connect(MONGO_URI).catch((err) => {
-      mongoConnectionPromise = null;
-      throw err;
-    });
-  }
-
-  return mongoConnectionPromise;
-};
-
-connectToMongo().catch((err) => {
-  console.error('MongoDB connection error:', err.message);
-});
-
 if (require.main === module) {
+  connectToMongo().catch((err) => {
+    console.error('MongoDB connection error:', err.message);
+  });
+
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
