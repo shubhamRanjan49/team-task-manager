@@ -16,10 +16,35 @@ const allowedOrigins = [
   .flatMap((origin) => origin.split(','))
   .map((origin) => origin.trim());
 
-// Middleware
+const isAllowedVercelPreviewOrigin = (origin) => {
+  if (!process.env.CLIENT_URL) return false;
+
+  try {
+    const requestUrl = new URL(origin);
+    const configuredUrls = process.env.CLIENT_URL
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean)
+      .map((value) => new URL(value));
+
+    return configuredUrls.some((configuredUrl) => {
+      if (!configuredUrl.hostname.endsWith('.vercel.app')) return false;
+      if (requestUrl.protocol !== 'https:') return false;
+      if (!requestUrl.hostname.endsWith('.vercel.app')) return false;
+
+      const configuredProject = configuredUrl.hostname.replace('.vercel.app', '');
+      const requestProject = requestUrl.hostname.replace('.vercel.app', '');
+
+      return requestProject === configuredProject || requestProject.startsWith(`${configuredProject}-`);
+    });
+  } catch {
+    return false;
+  }
+};
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || isAllowedVercelPreviewOrigin(origin)) {
       return callback(null, true);
     }
 
@@ -29,18 +54,15 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 
-// Health check
 app.get('/', (req, res) => {
   res.json({ message: 'Team Task Manager API is running' });
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
@@ -49,27 +71,30 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Connect to MongoDB
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/team-task-manager';
 
-console.log('🚀 Starting server...');
-console.log(`📍 Port: ${PORT}`);
-console.log(`🔗 MongoDB URI: ${MONGO_URI}`);
+let mongoConnectionPromise;
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log('✅ Connected to MongoDB successfully!');
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection error:', err.message);
-  });
+const connectToMongo = () => {
+  if (!mongoConnectionPromise) {
+    mongoConnectionPromise = mongoose.connect(MONGO_URI).catch((err) => {
+      mongoConnectionPromise = null;
+      throw err;
+    });
+  }
 
-// Start server regardless of MongoDB connection
-app.listen(PORT, () => {
-  console.log(`✅ Server running on http://localhost:${PORT}`);
-  console.log(`📡 API available at http://localhost:${PORT}/api`);
+  return mongoConnectionPromise;
+};
+
+connectToMongo().catch((err) => {
+  console.error('MongoDB connection error:', err.message);
 });
+
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+  });
+}
 
 module.exports = app;
